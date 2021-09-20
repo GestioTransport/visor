@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Punts d'Atenció</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    <script src="leaflet-sidebar.js"></script>
+    <!-- <script src="https://raw.github.com/calvinmetcalf/leaflet-ajax/master/dist/leaflet.ajax.min.js"></script> -->
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet-0.7.2/leaflet.ie.css" /><![endif]-->
+
+    <link rel="stylesheet" href="leaflet-sidebar.css" />
+
+    <!-- Mapbox GL -->
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.2.0/mapbox-gl.css" rel='stylesheet' />
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.2.0/mapbox-gl.js"></script>
+    <script src="https://rawgit.com/mapbox/mapbox-gl-leaflet/master/leaflet-mapbox-gl.js"></script>
+
+    <!-- nearest point -->
+    <script src="https://unpkg.com/leaflet-knn@0.1.0/leaflet-knn.js"></script>
+
+
+    <!--multiselect-->
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+
+    <!--Locate Control-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js"
+        charset="utf-8"></script>
+
+    <!--Geocoder -->
+    <script src="https://rawgit.com/k4r573n/leaflet-control-osm-geocoder/master/Control.OSMGeocoder.js"></script>
+    <link rel="stylesheet"
+        href="https://rawgit.com/k4r573n/leaflet-control-osm-geocoder/master/Control.OSMGeocoder.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <!-- Easy Button -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+
+
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body,
+        #mapid {
+            height: 100%;
+            font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+        }
+
+        .lorem {
+            font-style: italic;
+            color: #AAA;
+        }
+
+        #container {
+            width: 100%;
+        }
+
+        #geocodeError {
+            position: absolute;
+            display: none;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+            padding: 25px;
+            width: 250px;
+            height: 150px;
+            background: #fff;
+            border: 2px solid #000;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: center;
+            z-index: 2000;
+        }
+
+        #errorCloseBtn {
+            position: absolute;
+            padding: 8px;
+            top: 2px;
+            right: 4px;
+            font-weight: bold;
+            font-size: 0.96em;
+        }
+
+        #errorText {
+            margin-top: 30px;
+        }
+
+
+        .leaflet-control-layers-toggle:after {
+
+            color: rgb(26, 24, 24);
+            font-weight: bold;
+            font-size: 14px;
+            padding-right: 50px;
+          
+
+        }
+
+        .leaflet-control-layers-toggle {
+            width: auto;
+            background-position: 10px 50%;
+            text-decoration: none;
+            line-height: 36px;
+            padding-right: 50px;
+        }
+
+        .multiselect {
+            
+            background-image: linear-gradient(135deg, rgb(0, 153, 137), rgb(175,203,55));
+            background-color:  rgb(0, 153, 137);
+            color: white;
+            z-index: 1000000;
+            position: absolute;
+            border: 0px;
+            box-shadow: 2px 2px 5px #aaaaaa;
+
+        }
+
+        .multiselect:hover, .multiselect:focus {
+            background-image: linear-gradient(135deg, rgb(0, 120, 107), rgb(143,170,27)) !important;
+            background-color: rgb(56, 95, 83) ;
+            color: white !important;
+        }
+
+        .poptitle {
+            font-size: 16px;
+            font-weight: bolder;
+            text-align: center;
+        }
+
+        .pop {
+            text-align: center;
+        }
+
+        .logo {
+            width: 150px;
+            text-align: center;
+        }
+
+        .titol {
+            font-weight: bolder;
+            font-size: 16px;
+            text-align: center;
+            padding-top: 5px;
+        }
+
+        .leaflet-control-container .leaflet-routing-container-hide {
+            display: none;
+        }
+
+        .barra,
+        .btn-group {
+            z-index: 10000;
+        }
+
+        .barra {
+            background: white;
+            border-radius: 5px;
+
+            z-index: 10000;
+            position: relative;
+        }
+
+        .tooltip-mapa {
+            font-size: 1.20em;
+        }
+
+        tbody {
+            text-align: center;
+        }
+
+        .tit {
+            text-align: center;
+            font-size: 1em;
+            background-image: rgb(0, 153, 137);
+            background-color: rgb(0, 153, 137);
+            color: white;
+
+        }
+
+        .ix {
+            font-weight: bolder;
+
+        }
+
+        #legend {
+            position: absolute;
+            z-index: 100000;
+            bottom: 0;
+            right: 0;
+        }
+
+        #botonet {
+            background-color: rgb(117, 117, 117);
+            color: rgb(233, 233, 233);
+            font-weight: bolder;
+            width: 100%;
+        }
+
+        #botonet:hover,
+        #botonet:after {
+            background-color: rgb(48, 48, 48);
+            color: rgb(252, 252, 252);
+        }
+
+        #demo {
+            text-align: center;
+        }
+
+        .telef {
+            color: black !important;
+            font-weight: bold;
+        }
+
+        #goto {
+            background-color: rgb(0, 153, 137);
+            color: white;
+            margin-top: 1em;
+        }
+
+        #goto:hover,
+        #goto:after {
+            background-color: rgb(2, 97, 87);
+            color: rgb(252, 252, 252);
+        }
+
+        .ok {
+            width: 2em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar" class="sidebar collapsed">
+        <!-- Categories -->
+        <div class="sidebar-tabs">
+            <ul role="tablist">
+                <li><a href="#home" role="tab"><i class="fa fa-info"></i></a></li>
+                <li><a href="#profile" role="tab"><i class="fa fa-search"></i></a></li>
+                
+                <li><a href="#settings" role="tab" target="_blank"><i class="fa fa-gear"></i></a></li>
+            </ul>
+
+            <ul role="tablist">
+                <li><a href="#question" role="tab"><i class="fa fa-question"></i></a></li>
+            </ul>
+        </div>
+
+        <!-- Tab panes -->
+        <div class="sidebar-content">
+            <div class="sidebar-pane" id="home">
+                <h1 class="sidebar-header">
+                    Mapa d'OACS
+                    <span class="sidebar-close"><i class="fa fa-times"></i></span>
+                </h1>
+
+                <p style="margin-top: 1em; font-size: 1.6em; text-align: center;"><strong>Selecciona qualsevol punt del mapa per veure'n la informació.</strong></p>
+
+            </div>
+
+            <div class="sidebar-pane" id="profile">
+                <h1 class="sidebar-header">Cerca<span class="sidebar-close"><i class="fa fa-times"></i></span>
+                </h1>
+                <p style="margin-top: 1em; font-size: 1.2em; "><strong>Introdueix una adreça, municipi, codi postal o topònim.</strong></p>
+
+
+            </div>
+
+
+            <div class="sidebar-pane" id="settings">
+                <h1 class="sidebar-header">Configuració<span class="sidebar-close"><i class="fa fa-times"></i></span></h1>
+                <p style="margin-top: 1em; font-size: 1.2em;"><strong>Selecciona la cartografia de base:</strong></p>
+            </div>
+
+            <div class="sidebar-pane" id="question">
+                <h1 class="sidebar-header">Ajuda<span class="sidebar-close"><i class="fa fa-times"></i></span></h1>
+                <p style="margin-top: 1em; font-size: 1.2em;"><strong></strong></p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="legend">
+        <img src="llegenda.PNG" alt="Llegenda" width="217" height="91">
+    </div>
+
+    <div id="mapid" class="sidebar-map">   </div>
+
+    <script>
+        var oacs = $.ajax({
+            url: "https://raw.githubusercontent.com/GestioTransport/POIS/main/oacs.geojson",
+            dataType: "json",
+            success: console.log("Capa geojson carregada correctament."),
+            error: function (xhr) {
+                alert(xhr.statusText)
+            }
+        })
+        $.when(oacs).done(function () {
+
+            var mymap = L.map('mapid', {
+                minZoom: 9,
+                maxBounds: [
+                    //sud-oest
+                    [40.33825, -0.70391],
+                    //nord-est
+                    [42.88239, 3.96357]
+                ],
+            }).setView([41.422264, 2.112247], 11);
+
+            var sidebar = L.control.sidebar('sidebar', {
+                position: 'left',
+                closeButton: 'true'
+            }).addTo(mymap);
+
+            var Tmobilitat = L.mapboxGL({
+                style: 'https://test-tmob.atm.cat/mapservice/style/t-mobilitat',
+                accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
+            })
+
+
+            var Tmob_corones = L.mapboxGL({
+                style: 'mapbox://styles/gestiotransport/ckgrq5adb0h5x19l41qcl7zbj',
+                accessToken: 'pk.eyJ1IjoiZ2VzdGlvdHJhbnNwb3J0IiwiYSI6ImNrOGluZGFscDAxaGQzaG10am44YW91bHIifQ.7Y_RPPdMNmQSjqm55YenAQ',
+            }).addTo(mymap);
+
+
+            var basemap = {
+                'Corones tarifàries': Tmob_corones,
+                'T-mobilitat': Tmobilitat
+
+            };
+
+
+            var capes= L.control.layers(basemap, null, {collapsed:false});
+            capes.addTo(mymap);
+            capes._container.remove();
+            L.control.scale().addTo(mymap);
+            var grup = L.layerGroup().addTo(mymap);
+            L.control.locate({ position: 'topleft', flyTo: "true", initialZoomLevel: "13" }).addTo(mymap);
+            var control = L.Control.geocoder({placeholder: "Cerca..."});
+
+
+            document.getElementById('profile').appendChild(
+                control.onAdd(mymap)
+            );
+
+            document.getElementById('settings').appendChild(
+                capes.onAdd(mymap)
+            );
+
+
+
+            var sidebarDiv = document.getElementById('sidebar');
+
+            toggleSidebar = function () {
+                if (hasClass(sidebarDiv, 'collapsed')) {
+                    sidebar.open('home');
+                    document.getElementById('legend').style.zIndex = 0;
+                }
+               
+            }
+
+            function hasClass(element, cls) {
+                return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+            }
+
+            var kyOacs = L.geoJSON(oacs.responseJSON, {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, { icon: greenIcon });
+                },
+                onEachFeature: onEachFeature
+
+            }).addTo(mymap)
+        });
+
+
+
+        var greenIcon = L.icon({
+            iconUrl: 'oac.png',
+        });
+
+        
+
+
+        function onEachFeature(feature, layer) {
+            layer.bindTooltip("<h5 class='infoHeader'><strong>" + feature.properties.nom_operad);
+            layer.on('click', function (e) {
+                
+                toggleSidebar() 
+                             
+                $('#home').html(` <h1 class="sidebar-header" style="text-align:center; margin-bottom: 0.3em">
+                    ${feature.properties.nom_operad}
+                    
+                </h1>
+                <table class="table table-hover" >
+                <p class='pop'><img style='background-color: rgba(255, 255, 255, 0.8); width: 200px;' src = ${feature.properties.img}></p>
+                   <tr>
+                       <th>Horari presencial: </th>
+                        <td>    ${feature.properties.horari}</td>
+                    </tr>
+                        <th>Telèfon: </th>
+                        <td><strong><a class="telef" href="tel:${feature.properties.tel}">${feature.properties.tel}</strong></td>
+                    </tr>
+                <tr>
+                       <th>Direcció: </th>
+                       <td>      ${feature.properties.direccio}</td>
+                    </tr>
+                    <tr>
+                        <th>Corona Tarifària: </th>
+                        <td>    <strong>  ${feature.properties.sector} </strong></td>
+                    </tr>
+
+                    <tr>
+                        <th>Observacions: </th>
+                        <td>     ${feature.properties.observacions}</td>
+                    </tr>
+
+            </table>
+
+                <a href="#demo" id="botonet" class="btn" data-toggle="collapse">SERVEIS <strong>↓</strong></a>
+                <div id="demo" class="collapse">  
+                    <table class="table table-hover">
+
+                        <tbody>
+                            <tr>
+                            <th class="tit" scope="row">Alta de persona usuària</th>
+                            <td><img class="ok" src="${feature.properties.alta_client}"></td>
+                            </tr>
+
+                            <tr>
+                            <th class="tit" scope="row">Adquisició de suport</th>
+                            <td><img class="ok" src="${feature.properties.emissio_suport}"></td>
+                            </tr>
+
+                            <tr>
+                            <th class="tit" scope="row">Compra títols</th>
+                            <td colspan="2"><img class="ok" src="${feature.properties.carrega_recarrega}"></td>
+                            </tr>
+
+
+                            <tr>
+                            <th class="tit" scope="row">Perfil bonificat FN/FM</th>
+                            <td colspan="2"><img class="ok" src="${feature.properties.alta_fn_fm}"></td>
+                            </tr>
+
+                         
+                            <tr>
+                           <th class="tit" scope="row">Bescanvis</th>
+                            <td colspan="2"><img class="ok" src="${feature.properties.bescanvis}"></td>
+                            </tr>
+
+                            <tr>
+                           <th class="tit" scope="row">Duplicats</th>
+                            <td colspan="2"><img class="ok" src="${feature.properties.duplicats}"></td>
+                            </tr>
+
+                            <tr>
+                            <th class="tit" scope="row">Factures</th>
+                            <td colspan="2"><img class="ok" src="${feature.properties.factures}"></td>
+                            </tr>
+
+                            <tr>
+                            <th class="tit" scope="row">Altres gestions</th>
+                         <td colspan="2"><img class="ok" src="${feature.properties.gestio_usuaris_titols_suports}"></td>
+                            </tr>
+
+                            <tr>
+                           <th class="tit" scope="row">Gestió d'incidències</th>
+                            <td colspan="2"><img class="ok" src="${feature.properties.gestio_incidencies}"></td>
+                            </tr>
+
+
+                        </tbody>
+                    </table>
+                    </div>
+
+               <p class="pop">   <a class="btn" id="goto" target="_blank" href= "${feature.properties.URL}" role="button"> Web de l'operador</a></p>
+                `);
+                $('#profile').html();
+                $('#messages').html();
+                
+            });
+        }   
+
+    </script>
+
+</body>
+
+</html>
